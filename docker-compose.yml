@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Service 1: The RAG API (main.py)
+  rag-api:
+    build: .
+    container_name: rag-api
+    command: uvicorn main:app --host 0.0.0.0 --port 8080
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - .:/app  # Sync code changes immediately
+
+  # Service 2: The MCP Server (server.py)
+  mcp-server:
+    build: .
+    container_name: mcp-server
+    # Wait for RAG API to start before starting MCP
+    depends_on:
+      - rag-api
+    command: python server.py
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - RAG_SERVER_URL=http://rag-api:8080
+    volumes:
+      - .:/app

@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+python-multipart
+requests
+python-dotenv
+mcp
+supabase
+langchain
+langchain-core
+langchain-community
+langchain-experimental
+langchain-huggingface
+langchain-google-genai
+pypdf
+sentence-transformers
+torch
