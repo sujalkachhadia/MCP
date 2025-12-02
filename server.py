@@ -11,36 +11,14 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
-# --- CONFIGURATION ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 RAG_SERVER_URL = os.getenv("RAG_SERVER_URL", "http://127.0.0.1:8080")
-
-# Credentials for the MCP server to authenticate with the RAG API
-RAG_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-RAG_PASSWORD = os.getenv("ADMIN_PASSWORD", "securepassword123")
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found. Please check your .env file.")
 
 mcp = FastMCP("Abhi's Assistant")
-
-# --- HELPER: GET AUTH TOKEN ---
-def get_auth_token():
-    """Authenticates with the RAG API and returns a JWT token."""
-    url = f"{RAG_SERVER_URL.rstrip('/')}/token"
-    payload = {
-        "username": RAG_USERNAME,
-        "password": RAG_PASSWORD
-    }
-    try:
-        # FastAPI OAuth2 expects form-data, not JSON
-        res = requests.post(url, data=payload)
-        res.raise_for_status()
-        return res.json().get("access_token")
-    except Exception as e:
-        print(f"Authentication Failed: {e}")
-        return None
 
 # --- TOOL 1: WEATHER ---
 @mcp.tool()
@@ -63,25 +41,16 @@ def get_current_weather(location: str, unit: str = "celsius") -> str:
 @mcp.tool()
 def query_pdf_knowledge(query: str, k: int = 5) -> str:
     """Send query to RAG server and clean the output."""
-    
-    # 1. Get Token
-    token = get_auth_token()
-    if not token:
-        return "Error: Could not authenticate with Knowledge Base server."
-
     base_url = RAG_SERVER_URL.rstrip("/")
     url = f"{base_url}/query"
     
-    # 2. Add Header
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    
     try:
-        res = requests.post(url, json={"query": query, "k": k}, headers=headers)
+        res = requests.post(url, json={"query": query, "k": k})
         res.raise_for_status()
         
         raw_context = res.json().get("context", "")
+        
+        # Extra cleaning for the AI
         clean_context = re.sub(r'\s+', ' ', raw_context).strip()
         
         return clean_context if clean_context else "No info found."
@@ -96,8 +65,9 @@ async def handle_message(message: str) -> str:
 
     # 1. Check Weather
     if "weather" in msg:
+        # Simple extraction logic
         words = msg.split()
-        city = words[-1] if "in" in words else "London" 
+        city = words[-1] if "in" in words else "London" # Fallback
         return get_current_weather(city)
 
     # 2. Get Knowledge
