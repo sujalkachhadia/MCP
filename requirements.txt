@@ -1,3 +1,21 @@
+# fastapi
+# uvicorn
+# python-multipart
+# requests
+# python-dotenv
+# mcp
+# supabase
+# langchain
+# langchain-core
+# langchain-community
+# langchain-experimental
+# langchain-huggingface
+# langchain-google-genai
+# pypdf
+# pymupdf
+# sentence-transformers
+# torch
+
 fastapi
 uvicorn
 python-multipart
@@ -12,5 +30,8 @@ langchain-experimental
 langchain-huggingface
 langchain-google-genai
 pypdf
+pymupdf
 sentence-transformers
 torch
+python-jose[cryptography]
+passlib[bcrypt]
